@@ -1,0 +1,50 @@
+ALB_ACCESS_LOG %{HTTP_TYPE} %{TIMESTAMP} %{ALB_ID} %{CLIENT} %{TARGET} %{REQUEST_TIME} %{TARGET_TIME} %{RESPONSE_TIME} %{LB_STATUS_CODE} %{TARGET_STATUS_CODE} %{RECEIVED_BYTES} %{SENT_BYTES} "%{REQUEST_METHOD} %{REQUEST_URI} %{REQUEST_VERSION}" "%{USER_AGENT}" %{SSL_CIPHER} %{SSL_PROTOCOL} %{TARGET_GROUP_ARN} "%{TRACE_ID}" "%{SNI_NAME}" "%{CERT_ARN}" %{MATCHED_RULE_PRIORITY} %{REQUEST_CREATION_TIME} "%{ACTIONS_EXECUTED}" "%{REDIRECT_URL}" "%{ERROR_REASON}" ?%{GREEDYDATA:[http][lb][unhandled_fields]}
+
+# Some of the pattern names override base pattern names, which is fine.
+# Fields that don't map to a pre-defined ECS field are noted.
+
+# Not a real ECS field
+HTTP_TYPE %{NOTSPACE:[http][lb][connection_type]}
+TIMESTAMP %{TIMESTAMP_ISO8601:[event][end]}
+ALB_ID %{NOTSPACE:[cloud][instance][id]}
+CLIENT %{IP:[client][ip]}:%{INT:[client][port]:int}
+# Implementation detail: If the field's value is `-`, we don't want to parse it.
+# So match `-` first, which implicitly discards the field if it matches.
+TARGET (-|%{IP:[server][ip]}:%{INT:[server][port]:int})
+# Not a real ECS field
+REQUEST_TIME (-1|%{NUMBER:[http][lb][request_processing_time]:float})
+# Not a real ECS field
+TARGET_TIME (-1|%{NUMBER:[http][lb][target_processing_time]:float})
+# Not a real ECS field
+RESPONSE_TIME (-1|%{NUMBER:[http][lb][response_processing_time]:float})
+LB_STATUS_CODE %{INT:[http][response][status_code]:int}
+# Not a real ECS field
+TARGET_STATUS_CODE (-|%{NUMBER:[http][lb][server_status_code]:int})
+RECEIVED_BYTES %{INT:[http][request_bytes]:int}
+SENT_BYTES %{INT:[http][response_bytes]:int}
+REQUEST_METHOD %{NOTSPACE:[http][request][method]}
+# The request URI can include spaces
+REQUEST_URI %{DATA:[url][full]}
+REQUEST_VERSION %{NOTSPACE:[http][version]}
+# Handled specially in the processing pipeline
+USER_AGENT (-|%{DATA:user_agent_original})
+# Not a real ECS field
+SSL_CIPHER (-|%{NOTSPACE:[http][ssl][cipher]})
+# Not a real ECS field
+SSL_PROTOCOL (-|%{NOTSPACE:[http][ssl][protocol]})
+# Not a real ECS field
+TARGET_GROUP_ARN (-|%{NOTSPACE:[http][lb][target_group_arn]})
+# Not a real ECS field
+TRACE_ID (-|%{NOTSPACE:[http][request][header][x-amzn-trace-id]})
+# Not a real ECS field
+SNI_NAME (-|%{NOTSPACE:[http][ssl][sni_host]})
+# Not a real ECS field
+CERT_ARN (-|%{NOTSPACE:[http][ssl][certificate_arn]})
+# Not a real ECS field
+MATCHED_RULE_PRIORITY (-|%{NOTSPACE:[http][lb][matched_rule]:int})
+REQUEST_CREATION_TIME %{TIMESTAMP_ISO8601:[event][start]}
+# Not a real ECS field
+ACTIONS_EXECUTED (-|%{NOTSPACE:[http][lb][actions]})
+# Not a real ECS field
+REDIRECT_URL (-|%{NOTSPACE:[http][response][header][location]})
+ERROR_REASON (-|%{NOTSPACE:[error][code]})

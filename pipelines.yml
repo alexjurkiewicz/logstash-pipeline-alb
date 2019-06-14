@@ -1,0 +1,2 @@
+- pipeline.id: alb
+  path.config: "/usr/share/logstash/config/alb.logstash.conf"
